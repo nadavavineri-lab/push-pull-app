@@ -1,0 +1,601 @@
+<title>Push Pull</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --bg:#f4f2ee;
+    --surface:#ffffff;
+    --surface-2:#eae7df;
+    --text:#1c1b19;
+    --text-muted:#726c62;
+    --border:#ddd8cd;
+    --accent-push:#d9491f;
+    --accent-push-soft:#f4ddd2;
+    --accent-pull:#1c7480;
+    --accent-pull-soft:#d9e9e8;
+    --accent:#8a8578;
+    --accent-soft:#eae7df;
+    --shadow: 0 1px 2px rgba(28,27,25,0.06), 0 8px 24px -12px rgba(28,27,25,0.18);
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#15161a;
+      --surface:#1d1f25;
+      --surface-2:#262932;
+      --text:#f1efe8;
+      --text-muted:#96938c;
+      --border:#34373f;
+      --accent-push:#ff7a4d;
+      --accent-push-soft:#3a271f;
+      --accent-pull:#4fd0da;
+      --accent-pull-soft:#173338;
+      --accent:#8b8f99;
+      --accent-soft:#262932;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#15161a;
+    --surface:#1d1f25;
+    --surface-2:#262932;
+    --text:#f1efe8;
+    --text-muted:#96938c;
+    --border:#34373f;
+    --accent-push:#ff7a4d;
+    --accent-push-soft:#3a271f;
+    --accent-pull:#4fd0da;
+    --accent-pull-soft:#173338;
+    --accent:#8b8f99;
+    --accent-soft:#262932;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+  }
+
+  .shell{
+    max-width:640px;
+    margin:0 auto;
+    padding:20px 18px 64px;
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:28px;
+    min-height:40px;
+  }
+  .brand{
+    font-family:'Bebas Neue',system-ui,sans-serif;
+    font-size:28px;
+    letter-spacing:0.04em;
+    line-height:1;
+  }
+  .brand .slash{ color:var(--text-muted); font-weight:400; margin:0 4px;}
+  .back-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:none;
+    border:1px solid var(--border);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    padding:8px 14px 8px 10px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .back-btn:hover{ background:var(--surface-2); }
+  .back-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .reset-btn{
+    background:none;
+    border:1px solid var(--border);
+    color:var(--text-muted);
+    font-family:'Inter',sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    padding:7px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:border-color .15s ease, color .15s ease;
+    white-space:nowrap;
+  }
+  .reset-btn:hover{ border-color:var(--accent); color:var(--accent); }
+  .reset-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  /* ---------- landing ---------- */
+  .hero{
+    margin:8px 0 28px;
+  }
+  .hero h1{
+    font-family:'Bebas Neue',system-ui,sans-serif;
+    font-size:clamp(40px,10vw,56px);
+    letter-spacing:0.03em;
+    line-height:0.95;
+    margin:0 0 8px;
+    text-wrap:balance;
+  }
+  .hero p{
+    margin:0;
+    color:var(--text-muted);
+    font-size:15px;
+    max-width:38ch;
+  }
+
+  .program-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  @media (max-width:480px){
+    .program-grid{ grid-template-columns:1fr; }
+  }
+
+  .program-card{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:22px 20px 20px;
+    text-align:left;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    transition:transform .15s ease, border-color .15s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .program-card:hover{ transform:translateY(-2px); }
+  .program-card:focus-visible{ outline:2px solid var(--card-accent); outline-offset:3px; }
+  .program-card:active{ transform:translateY(0); }
+
+  .program-card .tag{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--card-accent);
+    background:var(--card-accent-soft);
+    padding:4px 9px;
+    border-radius:6px;
+    margin-bottom:14px;
+  }
+  .program-card h2{
+    font-family:'Bebas Neue',system-ui,sans-serif;
+    font-size:34px;
+    letter-spacing:0.02em;
+    margin:0 0 6px;
+    color:var(--text);
+  }
+  .program-card p.desc{
+    margin:0 0 16px;
+    color:var(--text-muted);
+    font-size:14px;
+    line-height:1.4;
+  }
+  .program-card .meta{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--text-muted);
+    border-top:1px solid var(--border);
+    padding-top:12px;
+  }
+  .program-card .go{
+    color:var(--card-accent);
+    font-weight:600;
+  }
+  .program-card[data-p="push"]{ --card-accent:var(--accent-push); --card-accent-soft:var(--accent-push-soft); }
+  .program-card[data-p="pull"]{ --card-accent:var(--accent-pull); --card-accent-soft:var(--accent-pull-soft); }
+
+  /* ---------- workout view ---------- */
+  .workout-head{ margin-bottom:22px; }
+  .workout-head .tag{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--accent);
+    background:var(--accent-soft);
+    padding:4px 9px;
+    border-radius:6px;
+    margin-bottom:10px;
+  }
+  .workout-head h1{
+    font-family:'Bebas Neue',system-ui,sans-serif;
+    font-size:clamp(36px,9vw,48px);
+    letter-spacing:0.03em;
+    margin:0 0 6px;
+    line-height:0.95;
+  }
+  .workout-head p{
+    margin:0 0 14px;
+    color:var(--text-muted);
+    font-size:14.5px;
+    max-width:44ch;
+  }
+  .progress-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .progress-track{
+    flex:1;
+    height:6px;
+    border-radius:999px;
+    background:var(--surface-2);
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--accent);
+    border-radius:999px;
+    width:0%;
+    transition:width .25s ease;
+  }
+  .progress-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--text-muted);
+    white-space:nowrap;
+  }
+
+  .exercise-list{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .exercise-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:16px 16px 14px;
+    box-shadow:var(--shadow);
+    transition:border-color .2s ease;
+  }
+  .exercise-card.done{ border-color:var(--accent); }
+
+  .exercise-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .exercise-index{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--text-muted);
+    margin-bottom:2px;
+    display:block;
+  }
+  .exercise-name{
+    font-size:16.5px;
+    font-weight:700;
+    line-height:1.25;
+  }
+  .exercise-sub{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--text-muted);
+    margin-top:3px;
+    letter-spacing:0.01em;
+  }
+  .check{
+    flex:none;
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    border:1.5px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--accent);
+    opacity:0;
+    transform:scale(0.6);
+    transition:opacity .2s ease, transform .2s ease, border-color .2s ease;
+  }
+  .exercise-card.done .check{
+    opacity:1;
+    transform:scale(1);
+    border-color:var(--accent);
+    background:var(--accent-soft);
+  }
+  .check svg{ width:12px; height:12px; }
+
+  .set-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .set-box{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:5px;
+  }
+  .set-box .set-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    color:var(--text-muted);
+    letter-spacing:0.05em;
+  }
+  .set-box input{
+    width:56px;
+    height:46px;
+    text-align:center;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    color:var(--text);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:15px;
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+    -moz-appearance:textfield;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .set-box input::-webkit-outer-spin-button,
+  .set-box input::-webkit-inner-spin-button{
+    -webkit-appearance:none;
+    margin:0;
+  }
+  .set-box input::placeholder{ color:var(--text-muted); opacity:0.55; font-weight:500;}
+  .set-box input:focus{
+    outline:none;
+    border-color:var(--accent);
+    background:var(--surface);
+  }
+  .set-box input:not(:placeholder-shown){
+    border-color:var(--accent);
+    background:var(--accent-soft);
+  }
+  .set-box .unit{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:9.5px;
+    color:var(--text-muted);
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+
+  .foot-note{
+    margin-top:26px;
+    text-align:center;
+    color:var(--text-muted);
+    font-size:12px;
+  }
+</style>
+
+<div class="shell">
+  <div class="topbar">
+    <div id="topbarLeft"></div>
+    <div id="topbarRight"></div>
+  </div>
+  <div id="view"></div>
+</div>
+
+<script>
+(function(){
+  var PROGRAMS = {
+    push: {
+      key:'push',
+      name:'Push',
+      tag:'Day A',
+      desc:'Chest, shoulders and triceps.',
+      exercises:[
+        {name:'Incline Dumbbell Press', reps:10, sets:4},
+        {name:'Seated Shoulder Press', reps:10, sets:3},
+        {name:'Cable Chest Fly', reps:12, sets:3},
+        {name:'Lateral Raises', reps:12, sets:3},
+        {name:'Triceps Rope Pushdown', reps:12, sets:3},
+        {name:'Overhead Triceps Extension', reps:10, sets:3}
+      ]
+    },
+    pull: {
+      key:'pull',
+      name:'Pull',
+      tag:'Day B',
+      desc:'Back and biceps.',
+      exercises:[
+        {name:'Lat Pulldown', reps:10, sets:4},
+        {name:'Seated Cable Row', reps:10, sets:3},
+        {name:'One-Arm Dumbbell Row', reps:10, sets:3},
+        {name:'Face Pulls', reps:15, sets:3},
+        {name:'Barbell Bicep Curls', reps:12, sets:3},
+        {name:'Hammer Curls', reps:10, sets:3}
+      ]
+    }
+  };
+
+  var STORAGE_KEY = 'push-pull-log-v1';
+  var data = {};
+  try{
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) data = JSON.parse(raw) || {};
+  }catch(e){ data = {}; }
+
+  function persist(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }catch(e){}
+  }
+
+  function fieldKey(programKey, exIndex, setIndex){
+    return programKey + ':' + exIndex + ':' + setIndex;
+  }
+
+  var view = document.getElementById('view');
+  var topbarLeft = document.getElementById('topbarLeft');
+  var topbarRight = document.getElementById('topbarRight');
+
+  function el(tag, attrs, children){
+    var node = document.createElement(tag);
+    attrs = attrs || {};
+    for(var k in attrs){
+      if(k === 'class') node.className = attrs[k];
+      else if(k === 'html') node.innerHTML = attrs[k];
+      else if(k.indexOf('on') === 0) node.addEventListener(k.slice(2), attrs[k]);
+      else node.setAttribute(k, attrs[k]);
+    }
+    (children || []).forEach(function(c){
+      if(c) node.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+    });
+    return node;
+  }
+
+  function renderLanding(){
+    document.documentElement.style.setProperty('--accent', 'var(--text-muted)');
+    topbarLeft.innerHTML = '';
+    topbarLeft.appendChild(el('div',{class:'brand'},['PUSH', el('span',{class:'slash'},['/']), 'PULL']));
+    topbarRight.innerHTML = '';
+
+    var wrap = el('div',{});
+    wrap.appendChild(el('div',{class:'hero'},[
+      el('h1',{},['Pick today’s session']),
+      el('p',{},['Two programs, six lifts each. Tap in your weight per set as you go — it’s saved automatically.'])
+    ]));
+
+    var grid = el('div',{class:'program-grid'});
+    ['push','pull'].forEach(function(key){
+      var p = PROGRAMS[key];
+      var filled = countFilled(p);
+      var total = totalSets(p);
+      var card = el('button',{class:'program-card', 'data-p':key, type:'button', onclick:function(){ openProgram(key); }},[
+        el('span',{class:'tag'},[p.tag]),
+        el('h2',{},[p.name]),
+        el('p',{class:'desc'},[p.desc]),
+        el('div',{class:'meta'},[
+          el('span',{},[p.exercises.length + ' exercises · ' + total + ' sets'].join('')),
+          el('span',{class:'go'},[filled > 0 ? (filled + '/' + total + ' logged') : 'Start →'])
+        ])
+      ]);
+      grid.appendChild(card);
+    });
+    wrap.appendChild(grid);
+    view.innerHTML = '';
+    view.appendChild(wrap);
+  }
+
+  function totalSets(p){
+    return p.exercises.reduce(function(sum, ex){ return sum + ex.sets; }, 0);
+  }
+  function countFilled(p){
+    var n = 0;
+    p.exercises.forEach(function(ex, exIndex){
+      for(var s=0; s<ex.sets; s++){
+        var v = data[fieldKey(p.key, exIndex, s)];
+        if(v !== undefined && v !== '') n++;
+      }
+    });
+    return n;
+  }
+
+  function openProgram(key){
+    var p = PROGRAMS[key];
+    document.documentElement.style.setProperty('--accent', 'var(--accent-' + key + ')');
+    document.documentElement.style.setProperty('--accent-soft', 'var(--accent-' + key + '-soft)');
+
+    topbarLeft.innerHTML = '';
+    topbarLeft.appendChild(el('button',{class:'back-btn', type:'button', onclick:renderLanding},['← Programs']));
+    topbarRight.innerHTML = '';
+    topbarRight.appendChild(el('button',{class:'reset-btn', type:'button', onclick:function(){
+      if(confirm('Clear all logged weights for ' + p.name + '?')){
+        p.exercises.forEach(function(ex, exIndex){
+          for(var s=0; s<ex.sets; s++){ delete data[fieldKey(p.key, exIndex, s)]; }
+        });
+        persist();
+        openProgram(key);
+      }
+    }},['Clear log']));
+
+    var wrap = el('div',{});
+    wrap.appendChild(el('div',{class:'workout-head'},[
+      el('span',{class:'tag'},[p.tag]),
+      el('h1',{},[p.name + ' Day']),
+      el('p',{},[p.desc])
+    ]));
+
+    var list = el('div',{class:'exercise-list'});
+    p.exercises.forEach(function(ex, exIndex){
+      var card = el('div',{class:'exercise-card', id:'ex-'+key+'-'+exIndex},[]);
+      var top = el('div',{class:'exercise-top'},[
+        el('div',{},[
+          el('span',{class:'exercise-index'},['0' + (exIndex+1)]),
+          el('div',{class:'exercise-name'},[ex.name]),
+          el('div',{class:'exercise-sub'},[ex.reps + ' reps · ' + ex.sets + ' sets'])
+        ]),
+        el('div',{class:'check'},[el('span',{html:'<svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.2 12L13 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'})])
+      ]);
+      card.appendChild(top);
+
+      var row = el('div',{class:'set-row'});
+      for(var s=0; s<ex.sets; s++){
+        (function(s){
+          var k = fieldKey(key, exIndex, s);
+          var input = el('input',{
+            type:'number',
+            inputmode:'decimal',
+            min:'0',
+            step:'0.5',
+            placeholder:'—',
+            'aria-label': ex.name + ' set ' + (s+1) + ' weight'
+          });
+          if(data[k] !== undefined) input.value = data[k];
+          input.addEventListener('input', function(){
+            if(input.value === '') delete data[k];
+            else data[k] = input.value;
+            persist();
+            updateCardState(card, p, exIndex);
+          });
+          var box = el('div',{class:'set-box'},[
+            el('span',{class:'set-label'},['SET ' + (s+1)]),
+            input,
+            el('span',{class:'unit'},['kg'])
+          ]);
+          row.appendChild(box);
+        })(s);
+      }
+      card.appendChild(row);
+      updateCardState(card, p, exIndex);
+      list.appendChild(card);
+    });
+    wrap.appendChild(list);
+    wrap.appendChild(el('p',{class:'foot-note'},['Logged weights stay on this device.']));
+
+    view.innerHTML = '';
+    view.appendChild(wrap);
+  }
+
+  function updateCardState(card, p, exIndex){
+    var ex = p.exercises[exIndex];
+    var filled = 0;
+    for(var s=0; s<ex.sets; s++){
+      var v = data[fieldKey(p.key, exIndex, s)];
+      if(v !== undefined && v !== '') filled++;
+    }
+    card.classList.toggle('done', filled === ex.sets);
+  }
+
+  renderLanding();
+})();
+</script>
