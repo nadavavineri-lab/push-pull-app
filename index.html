@@ -485,7 +485,7 @@
         el('h2',{},[p.name]),
         el('p',{class:'desc'},[p.desc]),
         el('div',{class:'meta'},[
-          el('span',{},[p.exercises.length + ' exercises · ' + total + ' sets'].join('')),
+          el('span',{},[p.exercises.length + ' exercises · ' + total + ' sets']),
           el('span',{class:'go'},[filled > 0 ? (filled + '/' + total + ' logged') : 'Start →'])
         ])
       ]);
