@@ -482,11 +482,12 @@
   .signout-btn:hover{ color:var(--text); }
   .signout-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
 
-  .sync-note{
+  .sync-bar{
     display:flex;
     align-items:center;
+    justify-content:flex-end;
     gap:7px;
-    margin:-14px 0 22px;
+    padding:0 0 12px;
     font-family:'IBM Plex Mono',monospace;
     font-size:11.5px;
     color:var(--text-muted);
@@ -505,6 +506,10 @@
 </style>
 
 <div class="shell">
+  <div class="sync-bar">
+    <span class="sync-dot" id="syncDot"></span>
+    <span id="syncLabel">—</span>
+  </div>
   <div class="topbar">
     <div id="topbarLeft"></div>
     <div id="topbarRight"></div>
@@ -579,14 +584,22 @@
   var data = {};
   var syncStatus = 'loading';
   var syncError = null;
+  var lastSyncAt = null;
 
   function fieldKey(programKey, exIndex, setIndex){
     return programKey + ':' + exIndex + ':' + setIndex;
   }
 
+  function formatSyncTime(d){
+    var datePart = d.toLocaleDateString(undefined, { month:'short', day:'numeric' });
+    var timePart = d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' });
+    return datePart + ' at ' + timePart;
+  }
+
   function setSyncStatus(status, message){
     syncStatus = status;
     syncError = message || null;
+    if(status === 'on') lastSyncAt = new Date();
     updateSyncUI();
   }
 
@@ -594,7 +607,8 @@
     if(syncStatus === 'saving') return { text:'Saving…', cls:'busy' };
     if(syncStatus === 'loading') return { text:'Loading your log…', cls:'busy' };
     if(syncStatus === 'error') return { text:'Sync failed' + (syncError ? ' — ' + syncError : ''), cls:'err' };
-    return { text:'Synced to your account', cls:'on' };
+    if(lastSyncAt) return { text:'Last synced ' + formatSyncTime(lastSyncAt), cls:'on' };
+    return { text:'Not synced yet', cls:'' };
   }
 
   function updateSyncUI(){
@@ -605,13 +619,6 @@
     dot.classList.remove('on','busy','err');
     if(st.cls) dot.classList.add(st.cls);
     label.textContent = st.text;
-  }
-
-  function syncNote(){
-    return el('div',{class:'sync-note'},[
-      el('span',{class:'sync-dot', id:'syncDot'}),
-      el('span',{id:'syncLabel'},[syncStatusInfo().text])
-    ]);
   }
 
   function loadRemoteData(){
@@ -739,7 +746,6 @@
       el('p',{},['Two programs, six lifts each. Pick your session and log every set as you go — we’ll remember it for next time.'])
     ]));
     wrap.appendChild(banner);
-    wrap.appendChild(syncNote());
 
     var grid = el('div',{class:'program-grid'});
     ['push','pull'].forEach(function(key){
@@ -799,7 +805,6 @@
       el('h1',{},[p.name + ' Day']),
       el('p',{},[p.desc])
     ]));
-    wrap.appendChild(syncNote());
 
     var list = el('div',{class:'exercise-list'});
     p.exercises.forEach(function(ex, exIndex){
