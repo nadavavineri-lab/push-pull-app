@@ -481,6 +481,27 @@
   }
   .signout-btn:hover{ color:var(--text); }
   .signout-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .sync-note{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    margin:-14px 0 22px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    color:var(--text-muted);
+  }
+  .sync-dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--border);
+    flex:none;
+    transition:background .2s ease;
+  }
+  .sync-dot.on{ background:#3fae62; }
+  .sync-dot.busy{ background:#d9a11f; }
+  .sync-dot.err{ background:#d1453b; }
 </style>
 
 <div class="shell">
@@ -556,42 +577,89 @@
     + '</svg>';
 
   var data = {};
+  var syncStatus = 'loading';
+  var syncError = null;
 
   function fieldKey(programKey, exIndex, setIndex){
     return programKey + ':' + exIndex + ':' + setIndex;
   }
 
+  function setSyncStatus(status, message){
+    syncStatus = status;
+    syncError = message || null;
+    updateSyncUI();
+  }
+
+  function syncStatusInfo(){
+    if(syncStatus === 'saving') return { text:'Saving…', cls:'busy' };
+    if(syncStatus === 'loading') return { text:'Loading your log…', cls:'busy' };
+    if(syncStatus === 'error') return { text:'Sync failed' + (syncError ? ' — ' + syncError : ''), cls:'err' };
+    return { text:'Synced to your account', cls:'on' };
+  }
+
+  function updateSyncUI(){
+    var dot = document.getElementById('syncDot');
+    var label = document.getElementById('syncLabel');
+    if(!dot || !label) return;
+    var st = syncStatusInfo();
+    dot.classList.remove('on','busy','err');
+    if(st.cls) dot.classList.add(st.cls);
+    label.textContent = st.text;
+  }
+
+  function syncNote(){
+    return el('div',{class:'sync-note'},[
+      el('span',{class:'sync-dot', id:'syncDot'}),
+      el('span',{id:'syncLabel'},[syncStatusInfo().text])
+    ]);
+  }
+
   function loadRemoteData(){
+    setSyncStatus('loading');
     return sb.from('weight_logs').select('program,exercise_index,set_index,weight').then(function(res){
+      if(res.error){
+        data = {};
+        setSyncStatus('error', res.error.message);
+        return;
+      }
       data = {};
       (res.data || []).forEach(function(row){
         data[fieldKey(row.program, row.exercise_index, row.set_index)] = String(row.weight);
       });
+      setSyncStatus('on');
     });
   }
 
   function saveField(programKey, exIndex, setIndex, value){
     var k = fieldKey(programKey, exIndex, setIndex);
+    setSyncStatus('saving');
     if(value === '' || value === undefined){
       delete data[k];
-      sb.from('weight_logs').delete().match({
+      return sb.from('weight_logs').delete().match({
         user_id: session.user.id, program: programKey, exercise_index: exIndex, set_index: setIndex
+      }).then(function(res){
+        if(res.error) setSyncStatus('error', res.error.message); else setSyncStatus('on');
       });
     }else{
       data[k] = value;
-      sb.from('weight_logs').upsert({
+      return sb.from('weight_logs').upsert({
         user_id: session.user.id,
         program: programKey,
         exercise_index: exIndex,
         set_index: setIndex,
         weight: value,
         updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id,program,exercise_index,set_index' });
+      }, { onConflict: 'user_id,program,exercise_index,set_index' }).then(function(res){
+        if(res.error) setSyncStatus('error', res.error.message); else setSyncStatus('on');
+      });
     }
   }
 
   function clearProgram(programKey){
-    return sb.from('weight_logs').delete().match({ user_id: session.user.id, program: programKey });
+    setSyncStatus('saving');
+    return sb.from('weight_logs').delete().match({ user_id: session.user.id, program: programKey }).then(function(res){
+      if(res.error) setSyncStatus('error', res.error.message); else setSyncStatus('on');
+    });
   }
 
   var view = document.getElementById('view');
@@ -671,6 +739,7 @@
       el('p',{},['Two programs, six lifts each. Pick your session and log every set as you go — we’ll remember it for next time.'])
     ]));
     wrap.appendChild(banner);
+    wrap.appendChild(syncNote());
 
     var grid = el('div',{class:'program-grid'});
     ['push','pull'].forEach(function(key){
@@ -730,6 +799,7 @@
       el('h1',{},[p.name + ' Day']),
       el('p',{},[p.desc])
     ]));
+    wrap.appendChild(syncNote());
 
     var list = el('div',{class:'exercise-list'});
     p.exercises.forEach(function(ex, exIndex){
